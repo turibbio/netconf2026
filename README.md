@@ -1,10 +1,8 @@
 # Microsoft Testing Platform: La Nuova Era dei Test in .NET
 
 ## Panoramica della Sessione
-**Conferenza:** .NET Conf 2026
-**Titolo:** Microsoft Testing Platform: La Nuova Era dei Test in .NET
-**Livello:** Intermedio / Avanzato
-**Audience:** Sviluppatori .NET, Ingegneri DevOps, Tech Lead
+**Conferenza:** .NET Conf 2026    
+**Titolo:** Microsoft Testing Platform: La Nuova Era dei Test in .NET    
 
 Questa sessione esplora i cambiamenti radicali nel testing e nell'automazione della compilazione in .NET 10. Ci focalizziamo su **Microsoft.Testing.Platform (MTP)**, il nuovo runner moderno, e le ottimizzazioni per le moderne pipeline CI/CD.
 
