@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+
+    <!-- TUnit is built natively on Microsoft.Testing.Platform -->
+    <!-- Source generators create the main entry point automatically -->
+    <!-- DO NOT add Microsoft.NET.Test.Sdk - it will break test discovery -->
+
+    <!-- Enable Native AOT support -->
+    <PublishAot>true</PublishAot>
+
+    <!-- Enable trimming for smaller binaries -->
+    <PublishTrimmed>true</PublishTrimmed>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- TUnit latest version - all-in-one package -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
+    <PackageReference Include="TUnit" Version="1.14.0" />
+  </ItemGroup>
+
+</Project>

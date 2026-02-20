@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- xUnit v3 MTP support with .NET 10 -->
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <OutputType>Exe</OutputType>
+
+    <!-- MTP v2 doesn't need TestingPlatformDotnetTestSupport anymore -->
+    <!-- It's configured via global.json -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" Version="1.0.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.1" />
+    <!-- Microsoft.NET.Test.Sdk removed - not needed with MTP v2 -->
+  </ItemGroup>
+
+</Project>

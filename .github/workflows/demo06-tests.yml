@@ -1,0 +1,120 @@
+# GitHub Actions Pipeline per Microsoft.Testing.Platform
+# Demo 06: Retry intelligente, TRX Report, Code Coverage, Job Summary
+
+name: 'Demo 06 - CI/CD Retry & Coverage'
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'demos/06-CI-CD-Retry/**'
+      - '.github/workflows/demo06-tests.yml'
+  pull_request:
+    paths:
+      - 'demos/06-CI-CD-Retry/**'
+      - '.github/workflows/demo06-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: 'Test with Retry + Coverage'
+
+    defaults:
+      run:
+        working-directory: demos/06-CI-CD-Retry
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build
+        run: dotnet build --configuration Release
+
+      # MTP esegue i test con:
+      # --retry-failed-tests 3  → riprova i test falliti fino a 3 volte
+      # --report-trx            → genera risultati in formato Visual Studio (.trx)
+      # --coverage              → raccoglie code coverage (Cobertura)
+      - name: Test with Retry + TRX + Coverage
+        run: >
+          dotnet run --no-build --configuration Release
+          --
+          --retry-failed-tests 5
+          --report-trx --report-trx-filename TestResults.trx
+          --coverage --coverage-output-format cobertura --coverage-output coverage.xml
+
+      # Carica il report TRX come artifact scaricabile
+      - name: Upload TRX results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-trx
+          path: demos/06-CI-CD-Retry/**/TestResults/*.trx
+
+      # Carica il report di code coverage come artifact
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: demos/06-CI-CD-Retry/**/TestResults/coverage.xml
+
+      # Genera un riepilogo leggibile nel tab "Summary" del workflow
+      - name: Test & Coverage summary
+        if: always()
+        run: |
+          echo "## Test Results — Demo 06 (CI/CD Retry)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Riepilogo retry
+          echo "### Retry Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- **Strategy:** \`--retry-failed-tests 5\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Behavior:** Solo i test falliti vengono rieseguiti (non l'intera suite)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Code Coverage — parsing dettagliato dal Cobertura XML
+          COVERAGE_FILE=$(find . -name "coverage.xml" -path "*/TestResults/*" | head -1)
+          if [ -f "$COVERAGE_FILE" ]; then
+            LINE_RATE=$(grep -oP 'line-rate="\K[^"]+' "$COVERAGE_FILE" | head -1)
+            BRANCH_RATE=$(grep -oP 'branch-rate="\K[^"]+' "$COVERAGE_FILE" | head -1)
+            LINE_PCT=$(echo "$LINE_RATE * 100" | bc -l | xargs printf "%.1f")
+            BRANCH_PCT=$(echo "$BRANCH_RATE * 100" | bc -l | xargs printf "%.1f")
+            LINES_COVERED=$(grep -oP 'lines-covered="\K[^"]+' "$COVERAGE_FILE" | head -1)
+            LINES_VALID=$(grep -oP 'lines-valid="\K[^"]+' "$COVERAGE_FILE" | head -1)
+
+            echo "### Code Coverage" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Line coverage | **${LINE_PCT}%** (${LINES_COVERED:-0}/${LINES_VALID:-0} lines) |" >> $GITHUB_STEP_SUMMARY
+            echo "| Branch coverage | **${BRANCH_PCT}%** |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            # Dettaglio per classe (se disponibile)
+            CLASS_COUNT=$(grep -c '<class ' "$COVERAGE_FILE" || true)
+            if [ "$CLASS_COUNT" -gt 0 ]; then
+              echo "#### Coverage per classe" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "| Classe | Line Coverage |" >> $GITHUB_STEP_SUMMARY
+              echo "|--------|-------------|" >> $GITHUB_STEP_SUMMARY
+              grep '<class ' "$COVERAGE_FILE" | while read -r line; do
+                CLASS_NAME=$(echo "$line" | grep -oP 'name="\K[^"]+')
+                CLASS_RATE=$(echo "$line" | grep -oP 'line-rate="\K[^"]+')
+                CLASS_PCT=$(echo "$CLASS_RATE * 100" | bc -l | xargs printf "%.0f")
+                echo "| \`${CLASS_NAME}\` | ${CLASS_PCT}% |" >> $GITHUB_STEP_SUMMARY
+              done
+            fi
+          else
+            echo "### Code Coverage" >> $GITHUB_STEP_SUMMARY
+            echo "Coverage report not generated." >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Artifacts
+          echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- **TRX Report:** disponibile negli artifacts del workflow" >> $GITHUB_STEP_SUMMARY
+          echo "- **Coverage XML:** disponibile negli artifacts del workflow" >> $GITHUB_STEP_SUMMARY

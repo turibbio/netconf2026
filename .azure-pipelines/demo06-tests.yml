@@ -1,0 +1,69 @@
+# Azure DevOps Pipeline for Microsoft.Testing.Platform with Retry Support
+# Dimostra: Retry intelligente, TRX Report, AzDo Report, Code Coverage
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - demos/06-CI-CD-Retry/**
+      - .azure-pipelines/demo06-tests.yml
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  # Chiave per MTP: unisce i multipli .trx generati dai retry
+  # in un'unica esecuzione logica nell'interfaccia Azure DevOps,
+  # mostrando "Passed on Retry" invece di falsi negativi.
+  AllowPtrToDetectTestRunRetryFiles: true
+  buildConfiguration: 'Release'
+  projectPath: 'demos/06-CI-CD-Retry/FlakyDemo.csproj'
+
+steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET 10 SDK'
+    inputs:
+      packageType: 'sdk'
+      version: '10.0.x'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Restore & Build'
+    inputs:
+      command: 'build'
+      projects: '$(projectPath)'
+      arguments: '--configuration $(buildConfiguration)'
+
+  # .NET 10 con MTP: DotNetCoreCLI@2 command 'test' usa VSTest (non supportato).
+  # Usare 'dotnet run' per eseguire direttamente l'eseguibile MTP.
+  - task: DotNetCoreCLI@2
+    displayName: 'Test with Retry + TRX + AzDo Report + Coverage'
+    inputs:
+      command: 'run'
+      projects: '$(projectPath)'
+      arguments: >-
+        --no-build --configuration $(buildConfiguration)
+        --
+        --retry-failed-tests 5
+        --report-trx
+        --report-azdo
+        --coverage --coverage-output-format cobertura --coverage-output coverage.xml
+
+  # Pubblica i risultati TRX nel tab "Tests" di Azure DevOps
+  - task: PublishTestResults@2
+    displayName: 'Publish TRX Results'
+    inputs:
+      testResultsFormat: 'VSTest'
+      testResultsFiles: '**/TestResults/*.trx'
+      mergeTestResults: true
+      testRunTitle: 'FlakyDemo - MTP Retry Tests'
+    condition: always()
+
+  # Pubblica il report Code Coverage nel tab "Code Coverage"
+  - task: PublishCodeCoverageResults@2
+    displayName: 'Publish Code Coverage'
+    inputs:
+      summaryFileLocation: '**/TestResults/coverage.xml'
+    condition: always()
+

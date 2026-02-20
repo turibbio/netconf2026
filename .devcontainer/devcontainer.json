@@ -1,0 +1,19 @@
+{
+  "name": ".NET Conf 2026 - Microsoft.Testing.Platform",
+  "image": "mcr.microsoft.com/dotnet/sdk:10.0",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.csharp"
+      ],
+      "settings": {
+        "dotnet.defaultSolution": "netconf2026.sln"
+      }
+    }
+  },
+  "postCreateCommand": "dotnet restore netconf2026.sln"
+}

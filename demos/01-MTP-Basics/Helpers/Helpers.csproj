@@ -1,0 +1,14 @@
+<Project Sdk="MSTest.Sdk/4.1.0">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- IsTestApplication=false genera una DLL (libreria helper/utility)
+         invece di un EXE (runner di test).
+         Utile per condividere codice di supporto tra piu' progetti di test. -->
+    <IsTestApplication>false</IsTestApplication>
+  </PropertyGroup>
+
+</Project>

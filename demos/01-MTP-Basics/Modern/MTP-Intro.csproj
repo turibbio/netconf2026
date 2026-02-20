@@ -1,0 +1,23 @@
+<Project Sdk="MSTest.Sdk/4.1.0">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- MSTest.Sdk automatically sets:
+         - OutputType = Exe  (richiesto per progetti con test eseguibili)
+         - EnableMSTestRunner = true
+         - Includes MSTest 4.1.0, MSTest.Analyzers, and Microsoft.Testing.Platform packages
+         Per librerie helper senza test propri: <IsTestApplication>false</IsTestApplication> (genera DLL)
+    -->
+
+    <!-- Example: Pre-configure command line arguments -->
+    <!-- <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) -ignore-exit-code 8</TestingPlatformCommandLineArguments> -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Helpers\Helpers.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,21 @@
+<Project Sdk="MSTest.Sdk/4.1.0">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- Enable all Microsoft testing extensions for comprehensive demo -->
+    <TestingExtensionsProfile>AllMicrosoft</TestingExtensionsProfile>
+  </PropertyGroup>
+
+  <!-- Exclude lib source files from test compilation (they're in a subfolder) -->
+  <ItemGroup>
+    <Compile Remove="FlakyDemo.Lib/**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="FlakyDemo.Lib/FlakyDemo.Lib.csproj" />
+  </ItemGroup>
+
+</Project>
